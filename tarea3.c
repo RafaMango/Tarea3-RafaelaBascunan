@@ -7,20 +7,20 @@
 #include "list.h"
 #include "map.h"
 
-#define MAX_NAME 50
-#define MAX_DESC 200
+#define MAXNAME 50
+#define MAXDESC 200
 #define INITIAL_TIME 10
 
 typedef struct {
-    char nombre[MAX_NAME];
+    char nombre[MAXNAME];
     int valor;
     int peso;
 } Item;
 
 typedef struct {
     int id;
-    char nombre[MAX_NAME];
-    char descripcion[MAX_DESC];
+    char nombre[MAXNAME];
+    char descripcion[MAXDESC];
     List* items;               
     int conexiones[4];//Arriba, Abajo, Izquierda, Derecha
     int is_final;
@@ -81,12 +81,12 @@ void cargar_laberinto() {
     while((campos = leer_linea_csv(file, ',')) != NULL) {
         Escenario* s = malloc(sizeof(Escenario));
         s->id = atoi(campos[0]);
-        strncpy(s->nombre, campos[1], MAX_NAME - 1);
-        s->nombre[MAX_NAME - 1] = '\0';
+        strncpy(s->nombre, campos[1], MAXNAME - 1);
+        s->nombre[MAXNAME - 1] = '\0';
         eliminar_espacios(s->nombre);
         
-        strncpy(s->descripcion, campos[2], MAX_DESC - 1);
-        s->descripcion[MAX_DESC - 1] = '\0';
+        strncpy(s->descripcion, campos[2], MAXDESC - 1);
+        s->descripcion[MAXDESC - 1] = '\0';
         eliminar_espacios(s->descripcion);
 
         //Procesar items usando split_string
@@ -97,8 +97,8 @@ void cargar_laberinto() {
                 List* valores = split_string(item_str, ",");
                 if(list_size(valores) >= 3) {
                     Item* it = malloc(sizeof(Item)); //abreviacion de item
-                    strncpy(it->nombre, list_first(valores), MAX_NAME - 1);
-                    it->nombre[MAX_NAME - 1] = '\0';
+                    strncpy(it->nombre, list_first(valores), MAXNAME - 1);
+                    it->nombre[MAXNAME - 1] = '\0';
                     eliminar_espacios(it->nombre);
                     it->valor = atoi(list_next(valores));
                     it->peso = atoi(list_next(valores));
