@@ -77,8 +77,6 @@ El programa presenta un error al leer algunas de las descripciones de lashabitac
 
 ---
 
-Puedo actualizar el archivo `README.md` y darte el nuevo. ¿Deseas que lo modifique y te lo entregue ahora?
-
 ## 📋 Créditos
 
 Desarrollado como proyecto educativo para practicar estructuras de datos en C.
