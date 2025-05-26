@@ -38,8 +38,7 @@ typedef struct {
     int tiempo_restante;
 } EstadoJuego;
 
-Grafo* grafo = NULL; //Grafo global
-EstadoJuego game;   //Estado del juego global
+Grafo *grafo = NULL;
 
 //Función de comparación para Map
 int int_equal(void* a, void* b) 
@@ -73,6 +72,7 @@ void cargar_laberinto() {
         exit(1);
     }
 
+    //grafo = malloc(sizeof(Grafo));
     grafo = malloc(sizeof(Grafo));
     grafo->nodos = map_create(int_equal);
 
@@ -131,7 +131,7 @@ void cargar_laberinto() {
 
 // Inicializa el estado del juego: busca el escenario inicial, 
 // resetea inventario, peso, puntaje y tiempo.
-void iniciar_juego() 
+void iniciar_juego(EstadoJuego* game) 
 {
     //Buscar escenario inicial usando Map
     int id_inicial = 1;
@@ -140,53 +140,53 @@ void iniciar_juego()
         printf("Error: No se encontro el escenario inicial\n");
         exit(1);
     }
-    game.current = (Escenario*)mp->value;
-    game.inventario = list_create();       //Inicializar List
-    game.peso_total = 0;
-    game.puntaje = 0;
-    game.tiempo_restante = INITIAL_TIME;
+    game->current = (Escenario*)mp->value;
+    game->inventario = list_create();       //Inicializar List
+    game->peso_total = 0;
+    game->puntaje = 0;
+    game->tiempo_restante = INITIAL_TIME;
 }
 
 // Muestra en pantalla el estado actual del jugador: 
 // escenario, items, inventario, conexiones y tiempo.
-void mostrar_estado_actual() 
+void mostrar_estado_actual(EstadoJuego* game) 
 {
-    printf("\n=== %s ===\n", game.current->nombre);
-    printf("%s\n", game.current->descripcion);
+    printf("\n=== %s ===\n", game->current->nombre);
+    printf("%s\n", game->current->descripcion);
     
     printf("\nItems disponibles:\n");
     int idx = 1;
     //REVISAR  Y CAMBIAR
-    for(Item* it = list_first(game.current->items); it != NULL; it = list_next(game.current->items), idx++) 
+    for(Item* it = list_first(game->current->items); it != NULL; it = list_next(game->current->items), idx++) 
     {
         printf("%d. %s (Valor: %d, Peso: %d)\n", 
                idx, it->nombre, it->valor, it->peso);
     }
     if(idx == 1) printf("No hay items en este escenario\n");
     
-    printf("\nInventario (Peso: %d, Puntos: %d):\n", game.peso_total, game.puntaje);
+    printf("\nInventario (Peso: %d, Puntos: %d):\n", game->peso_total, game->puntaje);
     idx = 1;
-    for(Item* it = list_first(game.inventario); it != NULL; it = list_next(game.inventario), idx++) 
+    for(Item* it = list_first(game->inventario); it != NULL; it = list_next(game->inventario), idx++) 
     {
         printf("%d. %s (Peso: %d, Valor: %d)\n", 
                idx, it->nombre, it->peso, it->valor);
     }
     if(idx == 1) printf("Inventario vacio\n");
     
-    printf("\nTiempo restante: %d\n", game.tiempo_restante);
+    printf("\nTiempo restante: %d\n", game->tiempo_restante);
     
     printf("\nConexiones disponibles:\n");
-    if(game.current->conexiones[0] != -1) printf("1. Arriba (Escenario %d)\n", game.current->conexiones[0]);
-    if(game.current->conexiones[1] != -1) printf("2. Abajo (Escenario %d)\n", game.current->conexiones[1]);
-    if(game.current->conexiones[2] != -1) printf("3. Izquierda (Escenario %d)\n", game.current->conexiones[2]);
-    if(game.current->conexiones[3] != -1) printf("4. Derecha (Escenario %d)\n", game.current->conexiones[3]);
+    if(game->current->conexiones[0] != -1) printf("1. Arriba (Escenario %d)\n", game->current->conexiones[0]);
+    if(game->current->conexiones[1] != -1) printf("2. Abajo (Escenario %d)\n", game->current->conexiones[1]);
+    if(game->current->conexiones[2] != -1) printf("3. Izquierda (Escenario %d)\n", game->current->conexiones[2]);
+    if(game->current->conexiones[3] != -1) printf("4. Derecha (Escenario %d)\n", game->current->conexiones[3]);
 }
 
 // Permite al jugador recoger un item del escenario actual.
 // Suma su valor y peso al inventario y lo elimina del escenario.
-void tomar_item() 
+void tomar_item(EstadoJuego* game) 
 {
-    int contador_items = list_size(game.current->items); //Contar items en el escenario
+    int contador_items = list_size(game->current->items); //Contar items en el escenario
     if(contador_items == 0) 
     {
         printf("No hay items para recoger en este escenario.\n");
@@ -207,7 +207,7 @@ void tomar_item()
     // Buscar item por índice
     int idx = 1;
     Item* tomado = NULL;
-    for(Item* it = list_first(game.current->items); it != NULL; it = list_next(game.current->items), idx++) 
+    for(Item* it = list_first(game->current->items); it != NULL; it = list_next(game->current->items), idx++) 
     {
         if(idx == opcion) 
         {
@@ -225,27 +225,27 @@ void tomar_item()
     //Agregar al inventario
     Item* new_item = malloc(sizeof(Item));
     *new_item = *tomado; // Copiar item
-    list_pushBack(game.inventario, new_item);
-    game.puntaje += tomado->valor;
-    game.peso_total += tomado->peso;
+    list_pushBack(game->inventario, new_item);
+    game->puntaje += tomado->valor;
+    game->peso_total += tomado->peso;
     
     //Eliminar del escenario
-    list_first(game.current->items);
+    list_first(game->current->items);
     for(int i = 1; i < opcion; i++) 
     {
-        list_next(game.current->items);
+        list_next(game->current->items);
     }
-    list_popCurrent(game.current->items);
+    list_popCurrent(game->current->items);
     free(tomado);
     
-    game.tiempo_restante--;
+    game->tiempo_restante--;
     printf("Has recogido: %s\n", new_item->nombre);
 }
 
 // Permite al jugador descartar un item del inventario.
 // Resta su valor y peso, y lo elimina del inventario.
-void descartar_item() {
-    int contador_inventario = list_size(game.inventario); //contador objetos en el inventario
+void descartar_item(EstadoJuego* game) {
+    int contador_inventario = list_size(game->inventario); //contador objetos en el inventario
     if(contador_inventario == 0) 
     {
         printf("No hay items en tu inventario.\n");
@@ -266,7 +266,7 @@ void descartar_item() {
     //Buscar item por índice
     int idx = 1;
     Item* descartado = NULL;
-    for(Item* it = list_first(game.inventario); it != NULL; it = list_next(game.inventario), idx++) 
+    for(Item* it = list_first(game->inventario); it != NULL; it = list_next(game->inventario), idx++) 
     {
         if(idx == opcion) {
             descartado = it;
@@ -280,31 +280,31 @@ void descartar_item() {
         return;
     }
     
-    game.puntaje -= descartado->valor;
-    game.peso_total -= descartado->peso;
+    game->puntaje -= descartado->valor;
+    game->peso_total -= descartado->peso;
     
     printf("Has descartado: %s\n", descartado->nombre);
     
     //Eliminar del inventario
-    list_first(game.inventario);
+    list_first(game->inventario);
     for(int i = 1; i < opcion; i++)
     {
-        list_next(game.inventario);
+        list_next(game->inventario);
     }
-    list_popCurrent(game.inventario);
+    list_popCurrent(game->inventario);
     free(descartado);
     
-    game.tiempo_restante--;
+    game->tiempo_restante--;
 }
 
 // Permite al jugador moverse a otro escenario según las conexiones.
 // Calcula el costo de tiempo en función del peso total.
-void moverse() {
+void moverse(EstadoJuego* game) {
     printf("Seleccione direccion:\n");
-    if(game.current->conexiones[0] != -1) printf("1. Arriba\n");
-    if(game.current->conexiones[1] != -1) printf("2. Abajo\n");
-    if(game.current->conexiones[2] != -1) printf("3. Izquierda\n");
-    if(game.current->conexiones[3] != -1) printf("4. Derecha\n");
+    if(game->current->conexiones[0] != -1) printf("1. Arriba\n");
+    if(game->current->conexiones[1] != -1) printf("2. Abajo\n");
+    if(game->current->conexiones[2] != -1) printf("3. Izquierda\n");
+    if(game->current->conexiones[3] != -1) printf("4. Derecha\n");
     printf("0. Cancelar\n");
     
     int opcion;
@@ -318,24 +318,24 @@ void moverse() {
     }
     
     int direccion = opcion - 1;
-    if(game.current->conexiones[direccion] == -1) 
+    if(game->current->conexiones[direccion] == -1) 
     {
         printf("Direccion no valida.\n");
         return;
     }
     
     // Calcular tiempo consumido
-    int tiempo_consumido = (int)ceil((game.peso_total + 1) / 10.0);
+    int tiempo_consumido = (int)ceil((game->peso_total + 1) / 10.0);
     if(tiempo_consumido < 1) tiempo_consumido = 1;
     
-    if(game.tiempo_restante < tiempo_consumido) 
+    if(game->tiempo_restante < tiempo_consumido) 
     {
         printf("No tienes suficiente tiempo para moverserte con tanto peso!\n");
         return;
     }
     
     // Buscar escenario usando Map
-    int nueva_id_escenario = game.current->conexiones[direccion];
+    int nueva_id_escenario = game->current->conexiones[direccion];
     MapPair* mp = map_search(grafo->nodos, &nueva_id_escenario);
     if(!mp)
     {
@@ -343,10 +343,10 @@ void moverse() {
         return;
     }
     
-    game.current = (Escenario*)mp->value;
-    game.tiempo_restante -= tiempo_consumido;
+    game->current = (Escenario*)mp->value;
+    game->tiempo_restante -= tiempo_consumido;
     
-    printf("Te has movido a: %s\n", game.current->nombre);
+    printf("Te has movido a: %s\n", game->current->nombre);
 }
 
 void menu()
@@ -360,21 +360,21 @@ void menu()
     printf("Seleccione una opcion: ");
 }
 //Esta funcion reinicia el juego, limpiando el inventario y volviendo al punto inicial
-void resetear() 
+void resetear(EstadoJuego* game) 
 {
     // Limpiar inventario
-    for(Item* it = list_first(game.inventario); it != NULL; it = list_next(game.inventario)) {
+    for(Item* it = list_first(game->inventario); it != NULL; it = list_next(game->inventario)) {
         free(it);
     }
-    list_clean(game.inventario);
+    list_clean(game->inventario);
     
-    iniciar_juego();
+    iniciar_juego(game);
     printf("Juego reiniciado.\n");
 }
 
 // Libera toda la memoria dinámica utilizada por el juego: 
 // items, escenarios, inventario y grafo.
-void cleanup() 
+void cleanup(EstadoJuego* game) 
 {
     if(grafo) 
     {
@@ -397,14 +397,14 @@ void cleanup()
     }
     
     // Limpiar inventario
-    if(game.inventario)
+    if(game->inventario)
     {
-        for(Item* it = list_first(game.inventario); it != NULL; it = list_next(game.inventario))
+        for(Item* it = list_first(game->inventario); it != NULL; it = list_next(game->inventario))
         {
             free(it);
         }
-        list_clean(game.inventario);
-        free(game.inventario);
+        list_clean(game->inventario);
+        free(game->inventario);
     }
 }
 
@@ -413,14 +413,15 @@ void cleanup()
 int main() 
 {
     cargar_laberinto();
-    iniciar_juego();
+    EstadoJuego game;
+    iniciar_juego(&game);
     
     printf("=== BIENVENIDO A GRAPHQUEST ===\n");
     
     int game_over = 0; //controla si el juego ha terminado
     while(!game_over && game.tiempo_restante > 0)
     {
-        mostrar_estado_actual();
+        mostrar_estado_actual(&game);
         
         if(game.current->is_final)
         {
@@ -437,16 +438,16 @@ int main()
         
         switch(opcion) {
             case 1:
-                tomar_item();
+                tomar_item(&game);
                 break;
             case 2:
-                descartar_item();
+                descartar_item(&game);
                 break;
             case 3:
-                moverse();
+                moverse(&game);
                 break;
             case 4:
-                resetear();
+                resetear(&game);
                 break;
             case 5:
                 game_over = 1;
@@ -461,6 +462,6 @@ int main()
         }
     }
     
-    cleanup();
+    cleanup(&game);
     return 0;
 }
